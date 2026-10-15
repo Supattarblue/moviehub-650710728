@@ -25,19 +25,13 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = async (email, password) => {
-    try {
-      const data = await apiLogin(email, password);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.member);
-      }
-      return data;
-    } catch (err) {
-      // ดึงเฉพาะข้อความ String ออกมา throw เสมอ เพื่อป้องกันปัญหา [object Object]
-      const message = typeof err === 'string' ? err : (err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      throw new Error(message);
+    const data = await apiLogin(email, password);
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.member);
     }
+    return data;
   };
 
   const logout = () => {

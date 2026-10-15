@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 function Login() {
@@ -17,14 +18,10 @@ function Login() {
     setStatus('submitting');
     setError(null);
     try {
-      await login(email, password);
-      navigate(from);
+      await login(email, password);                // POST /api/auth/login + จำ token
+      navigate(from);                              // กลับไปหน้าที่ตั้งใจจะไปตอนแรก
     } catch (err) {
-      console.log('Error object caught in Login.jsx:', err);
-      
-      // ดึงข้อความออกมา ถ้าเป็น Object ให้เอา .message ออกมา
-      const msg = err?.message || (typeof err === 'string' ? err : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      setError(msg);
+      setError(err.message);                       // ข้อความ 401 จาก server
       setStatus('typing');
     }
   }
@@ -58,13 +55,7 @@ function Login() {
         >
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
-        
-        {/* ป้องกันการ render Object เป็น String โดยตรง */}
-        {error && (
-          <p className="text-sm text-red-600">
-            {typeof error === 'object' ? (error.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง') : String(error)}
-          </p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
       <p className="mt-6 text-sm text-slate-500">
