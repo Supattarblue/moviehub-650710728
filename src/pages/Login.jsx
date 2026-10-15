@@ -1,31 +1,39 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+// TODO ขั้นที่ 2: import { useNavigate } from 'react-router-dom' และ import { useAuth } from '../auth/AuthContext'
 
 function Login() {
-  const [email, setEmail] = useState('demo@moviehub.test');
+  const [email, setEmail] = useState('demo@moviehub.test');   // บัญชีทดลองของ mock
   const [password, setPassword] = useState('1234');
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState('typing');
-  const { login } = useAuth(); 
-  const navigate = useNavigate();
+  const [status, setStatus] = useState('typing');             // 'typing' | 'submitting'
+  // TODO ขั้นที่ 2: const { login } = useAuth();  และ  const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || '/';
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const from = location.state?.from || '/';                   // ProtectedRoute ส่งมาบอกว่าเดิมจะไปไหน
 
   async function handleSubmit(e) {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
-
     try {
-      await login(email.trim(), password.trim());
-      navigate(from, { replace: true });
+      await login(email, password);                // POST /api/auth/login + จำ token
+      navigate(from);                              // กลับไปหน้าที่ตั้งใจจะไปตอนแรก
     } catch (err) {
-      console.log('Error caught in Login.jsx:', err);
-      setError(err?.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      setError(err.message);                       // ข้อความ 401 จาก server
       setStatus('typing');
     }
   }
+    // TODO ขั้นที่ 2: แทน 2 บรรทัดด้านล่างด้วยของจริง
+    //   setStatus('submitting') และล้าง error
+    //   try { await login(email, password); navigate(from); }
+    //   catch (err) { setError(err.message); setStatus('typing'); }
+    //setStatus('typing');
+    //setError(ยังไม่ได้ต่อ API เข้าสู่ระบบ (ขั้นที่ 2) สำเร็จแล้วต้องพาไปที่ ${from});
+  //}
 
   return (
     <div className="mx-auto max-w-sm px-4 py-12">
@@ -33,35 +41,15 @@ function Login() {
       <p className="mt-1 text-sm text-slate-500">ทดลองด้วย demo@moviehub.test / 1234 หรือสมัครใหม่</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        <input 
-          type="email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          placeholder="อีเมล" 
-          required
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" 
-        />
-        <input 
-          type="password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          placeholder="รหัสผ่าน" 
-          required
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" 
-        />
-        <button 
-          type="submit" 
-          disabled={status === 'submitting'}
-          className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300"
-        >
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="อีเมล" required
+               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" required
+               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+        <button type="submit" disabled={status === 'submitting'}
+                className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300">
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
-        
-        {error && (
-          <p className="text-sm text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
       <p className="mt-6 text-sm text-slate-500">

@@ -1,68 +1,47 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, register as apiRegister, getMe } from '../api/backend';
+import { createContext, useContext, useState } from 'react';
+import * as api from '../api/backend';
 
+// Context = "กล่องกลาง" ที่ component ไหนในแอปก็เอื้อมมาหยิบได้ ไม่ต้องส่ง props ต่อกันเป็นทอด ๆ
+// เราใส่สถานะ login ไว้ในนี้ เพราะ Navbar, MovieDetail, Wishlist ต้องรู้เหมือนกันหมดว่าใครล็อกอินอยู่
 const AuthContext = createContext(null);
 
+const TOKEN_KEY = 'moviehub.token';
+const MEMBER_KEY = 'moviehub.member';
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [loading, setLoading] = useState(true);
+  // อ่านค่าเดิมจาก localStorage จะได้ไม่หลุด login ตอน refresh
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  const [member, setMember] = useState(() => JSON.parse(localStorage.getItem(MEMBER_KEY) || 'null'));
 
-  useEffect(() => {
-    async function initAuth() {
-      if (token) {
-        try {
-          const userData = await getMe(token);
-          setUser(userData);
-        } catch (err) {
-          console.error('Failed to fetch user:', err);
-          logout();
-        }
-      }
-      setLoading(false);
-    }
-    initAuth();
-  }, [token]);
+  function remember({ token, member }) {
+    setToken(token);
+    setMember(member);
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(MEMBER_KEY, JSON.stringify(member));
+  }
 
-  const login = async (email, password) => {
-    try {
-      const data = await apiLogin(email, password);
-      if (data && data.token) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.member);
-      }
-      return data;
-    } catch (err) {
-      throw err;
-    }
-  };
+  async function login(email, password) {
+    const data = await api.login(email, password);   // ถ้าผิด backend.js จะ throw
+    remember(data);
+  }
 
-  const register = async (email, password, displayName) => {
-    try {
-      const data = await apiRegister(email, password, displayName);
-      if (data && data.token) {
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.member);
-      }
-      return data;
-    } catch (err) {
-      throw err;
-    }
-  };
+  async function register(email, password, displayName) {
+    await api.register(email, password, displayName);
+    await login(email, password);                    // สมัครเสร็จล็อกอินให้เลย
+  }
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  function logout() {
     setToken(null);
-    setUser(null);
-  };
+    setMember(null);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(MEMBER_KEY);
+  }
 
-  return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = { token, member, isLoggedIn: Boolean(token), login, register, logout };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export const useAuth = () => useContext(AuthContext);
+// hook สั้น ๆ ให้ทุกหน้าเรียก useAuth() แทนที่จะต้อง import Context เอง
+export function useAuth() {
+  return useContext(AuthContext);
+}

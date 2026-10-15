@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
+// โครงเดียวกับหน้า Login ต่างกันแค่ช่องกรอกและฟังก์ชันที่เรียก
 function Register() {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -15,13 +16,11 @@ function Register() {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
-
     try {
-      await register(email.trim(), password.trim(), displayName.trim());
+      await register(email, password, displayName);
       navigate('/');
     } catch (err) {
-      console.log('Error caught in Register.jsx:', err);
-      setError(err?.message || 'สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+      setError(err.message);                       // 409 อีเมลซ้ำ หรือ 400 กรอกไม่ครบ ข้อความมาจาก server
       setStatus('typing');
     }
   }
@@ -32,35 +31,11 @@ function Register() {
     <div className="mx-auto max-w-sm px-4 py-12">
       <h1 className="text-2xl font-semibold text-slate-900">สมัครสมาชิก</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        <input 
-          value={displayName} 
-          onChange={(e) => setDisplayName(e.target.value)} 
-          placeholder="ชื่อที่แสดง" 
-          required 
-          className={input} 
-        />
-        <input 
-          type="email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          placeholder="อีเมล" 
-          required 
-          className={input} 
-        />
-        <input 
-          type="password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          placeholder="รหัสผ่าน (4 ตัวขึ้นไป)" 
-          required 
-          minLength={4} 
-          className={input} 
-        />
-        <button 
-          type="submit" 
-          disabled={status === 'submitting'}
-          className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300"
-        >
+        <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="ชื่อที่แสดง" required className={input} />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="อีเมล" required className={input} />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน (4 ตัวขึ้นไป)" required minLength={4} className={input} />
+        <button type="submit" disabled={status === 'submitting'}
+                className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300">
           {status === 'submitting' ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}
         </button>
         {error && <p className="text-sm text-red-600">{error}</p>}
