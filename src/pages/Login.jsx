@@ -18,10 +18,15 @@ function Login() {
     setStatus('submitting');
     setError(null);
     try {
-      await login(email, password);                // POST /api/auth/login + จำ token
-      navigate(from);                              // กลับไปหน้าที่ตั้งใจจะไปตอนแรก
+      await login(email, password);
+      navigate(from);
     } catch (err) {
-      setError(err.message);                       // ข้อความ 401 จาก server
+      console.log('Error object caught in Login.jsx:', err); // ปริ้นดูใน Console ให้เห็นชัดๆ
+      
+      // ดักแปลงทุกกรณีไม่ให้หลุดเป็น Object ออกไปที่ JSX
+      const msg = err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
+      setError(msg !== '{}' ? msg : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      
       setStatus('typing');
     }
   }
