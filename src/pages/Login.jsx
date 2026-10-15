@@ -20,30 +20,31 @@ function Login() {
     try {
       await login(email, password);
       navigate(from);
-    } catch (err) {
-      console.log('Error caught in Login.jsx:', err);
+    } } catch (err) {
+  console.log('Error caught in Login.jsx:', err);
 
-      // 1. ดึงข้อความ error จาก Backend (ถ้าระบบส่งมาเป็น String)
-      const serverMessage = 
-        err?.response?.data?.message || 
-        err?.response?.data?.error || 
-        (typeof err === 'string' ? err : null);
+  const serverMessage = 
+    err?.response?.data?.message || 
+    err?.response?.data?.error || 
+    (typeof err === 'string' ? err : null);
 
-      // 2. ตรวจสอบเงื่อนไขว่าล็อกอินไม่ผ่าน (401 Unauthorized หรือรหัสผ่านผิด)
-      if (
-        err?.response?.status === 401 || 
-        serverMessage === 'Unauthorized' || 
-        err?.message === 'Unauthorized'
-      ) {
-        // บังคับแสดงผลเป็นข้อความภาษาไทยเมื่อรหัสผ่านหรืออีเมลไม่ถูกต้อง
-        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      } else {
-        // กรณีข้อความแจ้งเตือนอื่นๆ หรือข้อความขัดข้องระบบ
-        setError(serverMessage || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
-      }
+  // เพิ่มการเช็ก err?.message หรือแปลง err เป็น string เพื่อดักจับ 401 / Unauthorized
+  const isUnauthorized = 
+    err?.response?.status === 401 || 
+    serverMessage === 'Unauthorized' || 
+    err?.message?.includes('401') || 
+    err?.message?.includes('Unauthorized') ||
+    String(err).includes('401') ||
+    String(err).includes('Unauthorized');
 
-      setStatus('typing');
-    }
+  if (isUnauthorized) {
+    setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+  } else {
+    setError(serverMessage || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
+  }
+
+  setStatus('typing');
+}
   }
 
   return (
