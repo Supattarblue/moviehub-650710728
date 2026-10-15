@@ -18,12 +18,18 @@ export async function apiFetch(path, { method = 'GET', body, token } = {}) {
 
   if (res.status === 204) return null;                       // 3) ลบสำเร็จ ไม่มี body ให้อ่าน
 
-  const data = await res.json()                              //    อ่านคำตอบเป็น JSON
+  const data = await res.json()                              //    อ่านคำตอบเป็น JSON เพียงรอบเดียว
     .catch(() => ({ error: 'server ไม่ได้ตอบเป็น JSON' }));
+
   if (!res.ok) {
-  const errorData = await res.json().catch(() => ({}));
-  throw new Error(errorData.message || errorData.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    // ดึงข้อความจาก data ที่อ่านไว้แล้ว หรือกำหนดข้อความเริ่มต้นถ้าไม่พบ
+    const errorMessage = typeof data === 'string' 
+      ? data 
+      : (data.message || data.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+
+    throw new Error(errorMessage);
   }
+
   return data;
 }
 
