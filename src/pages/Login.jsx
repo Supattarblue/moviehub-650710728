@@ -16,15 +16,32 @@ function Login() {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
+
     try {
       await login(email, password);
       navigate(from);
     } catch (err) {
-      console.log('Error object caught in Login.jsx:', err);
-      
-      // ดึงข้อความออกมา ถ้าเป็น Object ให้เอา .message ออกมา
-      const msg = err?.message || (typeof err === 'string' ? err : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      setError(msg);
+      console.log('Error caught in Login.jsx:', err);
+
+      // 1. ดึงข้อความ error จาก Backend (ถ้าระบบส่งมาเป็น String)
+      const serverMessage = 
+        err?.response?.data?.message || 
+        err?.response?.data?.error || 
+        (typeof err === 'string' ? err : null);
+
+      // 2. ตรวจสอบเงื่อนไขว่าล็อกอินไม่ผ่าน (401 Unauthorized หรือรหัสผ่านผิด)
+      if (
+        err?.response?.status === 401 || 
+        serverMessage === 'Unauthorized' || 
+        err?.message === 'Unauthorized'
+      ) {
+        // บังคับแสดงผลเป็นข้อความภาษาไทยเมื่อรหัสผ่านหรืออีเมลไม่ถูกต้อง
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else {
+        // กรณีข้อความแจ้งเตือนอื่นๆ หรือข้อความขัดข้องระบบ
+        setError(serverMessage || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
+      }
+
       setStatus('typing');
     }
   }
@@ -59,10 +76,10 @@ function Login() {
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
         
-        {/* ป้องกันการ render Object เป็น String โดยตรง */}
+        {/* แสดงผลข้อความแจ้งเตือนภาษาไทย (การันตีเป็น String เสมอ ไม่เกิด [object Object]) */}
         {error && (
           <p className="text-sm text-red-600">
-            {typeof error === 'object' ? (error.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง') : String(error)}
+            {error}
           </p>
         )}
       </form>
