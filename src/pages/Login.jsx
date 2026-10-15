@@ -16,24 +16,15 @@ function Login() {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
-
     try {
-      await login(email.trim(), password.trim());
-      navigate(from, { replace: true });
+      await login(email, password);
+      navigate(from);
     } catch (err) {
-      console.log('Error caught in Login.jsx:', err);
-
-      // ดึง status หรือข้อความจาก server
-      const status = err?.response?.status;
-      const serverMessage = err?.response?.data?.message || err?.response?.data?.error;
-
-      // ถ้าได้รับ status 401 หรือ Unauthorized
-      if (status === 401 || serverMessage === 'Unauthorized' || err?.message?.includes('401')) {
-        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      } else {
-        setError(typeof serverMessage === 'string' ? serverMessage : 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
-      }
-
+      console.log('Error object caught in Login.jsx:', err);
+      
+      // ดึงข้อความออกมา ถ้าเป็น Object ให้เอา .message ออกมา
+      const msg = err?.message || (typeof err === 'string' ? err : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      setError(msg);
       setStatus('typing');
     }
   }
@@ -68,9 +59,10 @@ function Login() {
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
         
+        {/* ป้องกันการ render Object เป็น String โดยตรง */}
         {error && (
           <p className="text-sm text-red-600">
-            {error}
+            {typeof error === 'object' ? (error.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง') : String(error)}
           </p>
         )}
       </form>
