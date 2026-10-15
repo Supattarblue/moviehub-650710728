@@ -15,29 +15,13 @@ function Register() {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
-
     try {
-      // เรียกใช้ register
+      // เรียกใช้ register ตามลำดับ (email, password, displayName)
       await register(email.trim(), password.trim(), displayName.trim());
-      // สมัครสำเร็จให้เปลี่ยนหน้าไปหน้าหลัก
       navigate('/');
     } catch (err) {
       console.log('Error caught in Register.jsx:', err);
-
-      // ดึงข้อความ Error ออกมาจาก Response ป้องกันปัญหา [object Object]
-      const serverMessage = 
-        err?.response?.data?.message || 
-        err?.response?.data?.error || 
-        err?.message;
-
-      if (typeof serverMessage === 'string') {
-        setError(serverMessage);
-      } else if (typeof err === 'string') {
-        setError(err);
-      } else {
-        setError('ไม่สามารถสมัครสมาชิกได้ (อีเมลอาจซ้ำหรือข้อมูลไม่ถูกต้อง)');
-      }
-
+      setError(err?.message || 'สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
       setStatus('typing');
     }
   }
@@ -79,14 +63,8 @@ function Register() {
         >
           {status === 'submitting' ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}
         </button>
-        
-        {error && (
-          <p className="text-sm text-red-600">
-            {typeof error === 'object' ? JSON.stringify(error) : String(error)}
-          </p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
-
       <p className="mt-6 text-sm text-slate-500">
         มีบัญชีแล้ว? <Link to="/login" className="text-emerald-600 hover:underline">เข้าสู่ระบบ</Link>
       </p>

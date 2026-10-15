@@ -1,27 +1,28 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 function Login() {
-  const [email, setEmail] = useState('demo@moviehub.test');   // บัญชีทดลองของ mock
+  const [email, setEmail] = useState('demo@moviehub.test');
   const [password, setPassword] = useState('1234');
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState('typing');             // 'typing' | 'submitting'
+  const [status, setStatus] = useState('typing');
   const { login } = useAuth(); 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || '/';                   // ProtectedRoute ส่งมาบอกว่าเดิมจะไปไหน
+  const from = location.state?.from || '/';
 
   async function handleSubmit(e) {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
+
     try {
-      await login(email, password);                // POST /api/auth/login + จำ token
-      navigate(from);                              // กลับไปหน้าที่ตั้งใจจะไปตอนแรก
+      await login(email.trim(), password.trim());
+      navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message);                       // ข้อความ 401 จาก server
+      console.log('Error caught in Login.jsx:', err);
+      setError(err?.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
       setStatus('typing');
     }
   }
@@ -55,7 +56,12 @@ function Login() {
         >
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        
+        {error && (
+          <p className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
       </form>
 
       <p className="mt-6 text-sm text-slate-500">

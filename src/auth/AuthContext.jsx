@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       const data = await apiLogin(email, password);
-      if (data.token) {
+      if (data && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.member);
@@ -38,11 +38,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // รับ parameter (email, password, displayName) ตามที่ Register.jsx ส่งมา
+  // ตรงตามลำดับที่ backend.js คาดหวัง: (email, password, displayName)
   const register = async (email, password, displayName) => {
     try {
       const data = await apiRegister(email, password, displayName);
-      if (data.token) {
+      if (data && data.token) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
         setUser(data.member);
@@ -60,7 +60,6 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    // ส่ง register ออกไปให้ Register.jsx เรียกใช้ได้
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
