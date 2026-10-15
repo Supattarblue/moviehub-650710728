@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
-// โครงเดียวกับหน้า Login ต่างกันแค่ช่องกรอกและฟังก์ชันที่เรียก
 function Register() {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,10 +16,17 @@ function Register() {
     setStatus('submitting');
     setError(null);
     try {
-      await register(email, password, displayName);
+      await register(email.trim(), password.trim(), displayName.trim());
       navigate('/');
     } catch (err) {
-      setError(err.message);                       // 409 อีเมลซ้ำ หรือ 400 กรอกไม่ครบ ข้อความมาจาก server
+      console.log('Error caught in Register.jsx:', err);
+      
+      const serverMessage = err?.response?.data?.message || err?.response?.data?.error;
+      const msg = typeof serverMessage === 'string' 
+        ? serverMessage 
+        : (err?.message || 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง');
+      
+      setError(msg);
       setStatus('typing');
     }
   }

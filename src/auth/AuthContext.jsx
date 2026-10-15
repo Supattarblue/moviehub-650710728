@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, getMe } from '../api/backend';
+import { login as apiLogin, register as apiRegister, getMe } from '../api/backend';
 
 const AuthContext = createContext(null);
 
@@ -25,13 +25,32 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = async (email, password) => {
-    const data = await apiLogin(email, password);
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
-      setUser(data.member);
+    try {
+      const data = await apiLogin(email, password);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        setUser(data.member);
+      }
+      return data;
+    } catch (err) {
+      throw err;
     }
-    return data;
+  };
+
+  // รับ parameter (email, password, displayName) ตามที่ Register.jsx ส่งมา
+  const register = async (email, password, displayName) => {
+    try {
+      const data = await apiRegister(email, password, displayName);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        setUser(data.member);
+      }
+      return data;
+    } catch (err) {
+      throw err;
+    }
   };
 
   const logout = () => {
@@ -41,7 +60,8 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    // ส่ง register ออกไปให้ Register.jsx เรียกใช้ได้
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
