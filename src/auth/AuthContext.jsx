@@ -34,9 +34,8 @@ export function AuthProvider({ children }) {
       }
       return data;
     } catch (err) {
-      // ดึงเฉพาะข้อความ String ออกมา throw เสมอ เพื่อป้องกันปัญหา [object Object]
-      const message = typeof err === 'string' ? err : (err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      throw new Error(message);
+      // throw ตัว err ดั้งเดิมออกไป เพื่อให้ Login.jsx นำไปเช็ก status 401 ได้ถูกต้อง
+      throw err;
     }
   };
 

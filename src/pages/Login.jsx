@@ -18,33 +18,24 @@ function Login() {
     setError(null);
 
     try {
-      await login(email, password);
-      navigate(from);
-    } } catch (err) {
-  console.log('Error caught in Login.jsx:', err);
+      await login(email.trim(), password.trim());
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.log('Error caught in Login.jsx:', err);
 
-  const serverMessage = 
-    err?.response?.data?.message || 
-    err?.response?.data?.error || 
-    (typeof err === 'string' ? err : null);
+      // ดึง status หรือข้อความจาก server
+      const status = err?.response?.status;
+      const serverMessage = err?.response?.data?.message || err?.response?.data?.error;
 
-  // เพิ่มการเช็ก err?.message หรือแปลง err เป็น string เพื่อดักจับ 401 / Unauthorized
-  const isUnauthorized = 
-    err?.response?.status === 401 || 
-    serverMessage === 'Unauthorized' || 
-    err?.message?.includes('401') || 
-    err?.message?.includes('Unauthorized') ||
-    String(err).includes('401') ||
-    String(err).includes('Unauthorized');
+      // ถ้าได้รับ status 401 หรือ Unauthorized
+      if (status === 401 || serverMessage === 'Unauthorized' || err?.message?.includes('401')) {
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else {
+        setError(typeof serverMessage === 'string' ? serverMessage : 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
+      }
 
-  if (isUnauthorized) {
-    setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-  } else {
-    setError(serverMessage || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
-  }
-
-  setStatus('typing');
-}
+      setStatus('typing');
+    }
   }
 
   return (
@@ -77,7 +68,6 @@ function Login() {
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
         
-        {/* แสดงผลข้อความแจ้งเตือนภาษาไทย (การันตีเป็น String เสมอ ไม่เกิด [object Object]) */}
         {error && (
           <p className="text-sm text-red-600">
             {error}
