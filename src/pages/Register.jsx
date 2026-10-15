@@ -15,18 +15,29 @@ function Register() {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
+
     try {
+      // เรียกใช้ register
       await register(email.trim(), password.trim(), displayName.trim());
+      // สมัครสำเร็จให้เปลี่ยนหน้าไปหน้าหลัก
       navigate('/');
     } catch (err) {
       console.log('Error caught in Register.jsx:', err);
-      
-      const serverMessage = err?.response?.data?.message || err?.response?.data?.error;
-      const msg = typeof serverMessage === 'string' 
-        ? serverMessage 
-        : (err?.message || 'ไม่สามารถสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง');
-      
-      setError(msg);
+
+      // ดึงข้อความ Error ออกมาจาก Response ป้องกันปัญหา [object Object]
+      const serverMessage = 
+        err?.response?.data?.message || 
+        err?.response?.data?.error || 
+        err?.message;
+
+      if (typeof serverMessage === 'string') {
+        setError(serverMessage);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        setError('ไม่สามารถสมัครสมาชิกได้ (อีเมลอาจซ้ำหรือข้อมูลไม่ถูกต้อง)');
+      }
+
       setStatus('typing');
     }
   }
@@ -37,15 +48,45 @@ function Register() {
     <div className="mx-auto max-w-sm px-4 py-12">
       <h1 className="text-2xl font-semibold text-slate-900">สมัครสมาชิก</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="ชื่อที่แสดง" required className={input} />
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="อีเมล" required className={input} />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน (4 ตัวขึ้นไป)" required minLength={4} className={input} />
-        <button type="submit" disabled={status === 'submitting'}
-                className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300">
+        <input 
+          value={displayName} 
+          onChange={(e) => setDisplayName(e.target.value)} 
+          placeholder="ชื่อที่แสดง" 
+          required 
+          className={input} 
+        />
+        <input 
+          type="email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          placeholder="อีเมล" 
+          required 
+          className={input} 
+        />
+        <input 
+          type="password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          placeholder="รหัสผ่าน (4 ตัวขึ้นไป)" 
+          required 
+          minLength={4} 
+          className={input} 
+        />
+        <button 
+          type="submit" 
+          disabled={status === 'submitting'}
+          className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300"
+        >
           {status === 'submitting' ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        
+        {error && (
+          <p className="text-sm text-red-600">
+            {typeof error === 'object' ? JSON.stringify(error) : String(error)}
+          </p>
+        )}
       </form>
+
       <p className="mt-6 text-sm text-slate-500">
         มีบัญชีแล้ว? <Link to="/login" className="text-emerald-600 hover:underline">เข้าสู่ระบบ</Link>
       </p>
