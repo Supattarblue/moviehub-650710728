@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 function Login() {
   const [email, setEmail] = useState('demo@moviehub.test');   // บัญชีทดลองของ mock
@@ -13,7 +12,7 @@ function Login() {
   const location = useLocation();
   const from = location.state?.from || '/';                   // ProtectedRoute ส่งมาบอกว่าเดิมจะไปไหน
 
-   async function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
@@ -21,12 +20,11 @@ function Login() {
       await login(email, password);
       navigate(from);
     } catch (err) {
-      console.log('Error object caught in Login.jsx:', err); // ปริ้นดูใน Console ให้เห็นชัดๆ
+      console.log('Error object caught in Login.jsx:', err);
       
-      // ดักแปลงทุกกรณีไม่ให้หลุดเป็น Object ออกไปที่ JSX
-      const msg = err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
-      setError(msg !== '{}' ? msg : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      
+      // ดึงข้อความออกมา ถ้าเป็น Object ให้เอา .message ออกมา
+      const msg = err?.message || (typeof err === 'string' ? err : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      setError(msg);
       setStatus('typing');
     }
   }
@@ -37,15 +35,36 @@ function Login() {
       <p className="mt-1 text-sm text-slate-500">ทดลองด้วย demo@moviehub.test / 1234 หรือสมัครใหม่</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="อีเมล" required
-               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" required
-               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
-        <button type="submit" disabled={status === 'submitting'}
-                className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300">
+        <input 
+          type="email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          placeholder="อีเมล" 
+          required
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" 
+        />
+        <input 
+          type="password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          placeholder="รหัสผ่าน" 
+          required
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100" 
+        />
+        <button 
+          type="submit" 
+          disabled={status === 'submitting'}
+          className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:bg-slate-300"
+        >
           {status === 'submitting' ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        
+        {/* ป้องกันการ render Object เป็น String โดยตรง */}
+        {error && (
+          <p className="text-sm text-red-600">
+            {typeof error === 'object' ? (error.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง') : String(error)}
+          </p>
+        )}
       </form>
 
       <p className="mt-6 text-sm text-slate-500">
