@@ -15,8 +15,8 @@ function Register() {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
+
     try {
-      // เรียกใช้ register ตามลำดับ (email, password, displayName)
       await register(email.trim(), password.trim(), displayName.trim());
       navigate('/');
     } catch (err) {

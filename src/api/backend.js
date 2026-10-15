@@ -1,32 +1,28 @@
-// ชั้นกลางสำหรับคุยกับ Backend ของทีมเรา (วันนี้คือ mock ที่พอร์ต 4000 สัปดาห์หน้าคือ Go)
-// ต่างจาก tmdb.js ตรงที่มี POST / PUT / DELETE และต้องแนบ token สำหรับ endpoint ที่ต้อง login
-
-// '' = origin เดียวกับหน้าเว็บ CRA จะ proxy /api ไปที่ http://localhost:4000 ให้ (ตั้งใน package.json)
-// ตอนต่อ Go จริง ตั้ง REACT_APP_API_URL=https://api.ทีมเรา.xyz ใน .env และบน Vercel
+// ชั้นกลางสำหรับคุยกับ Backend ของทีมเรา
 const BASE = process.env.REACT_APP_API_URL || '';
 
-// ฟังก์ชันเดียวที่ fetch จริง ทุกฟังก์ชันด้านล่างเรียกผ่านตัวนี้
 export async function apiFetch(path, { method = 'GET', body, token } = {}) {
-  const headers = { 'Content-Type': 'application/json' };   // 1) บอก server ว่า body เป็น JSON
-  if (token) headers.Authorization = `Bearer ${token}`;      //    และแนบบัตรผ่านถ้ามี
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(BASE + path, {                     // 2) ยิงจริง
+  const res = await fetch(BASE + path, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,           //    object ต้องแปลงเป็นข้อความก่อนส่ง
+    body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (res.status === 204) return null;                       // 3) ลบสำเร็จ ไม่มี body ให้อ่าน
+  if (res.status === 204) return null;
 
-  const data = await res.json()                              //    อ่านคำตอบเป็น JSON เพียงรอบเดียว
+  const data = await res.json()
     .catch(() => ({ error: 'server ไม่ได้ตอบเป็น JSON' }));
 
   if (!res.ok) {
-    // ดึงข้อความจาก data ที่อ่านไว้แล้ว หรือกำหนดข้อความเริ่มต้นถ้าไม่พบ
-    const errorMessage = typeof data === 'string' 
-      ? data 
-      : (data.message || data.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-
+    let errorMessage = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+    if (typeof data === 'string') {
+      errorMessage = data;
+    } else if (data && typeof data === 'object') {
+      errorMessage = data.message || data.error || data.msg || JSON.stringify(data);
+    }
     throw new Error(errorMessage);
   }
 
@@ -35,19 +31,31 @@ export async function apiFetch(path, { method = 'GET', body, token } = {}) {
 
 // ---------- สมาชิก ----------
 export function register(email, password, displayName) {
-  return apiFetch('/api/auth/register', { method: 'POST', body: { email, password, displayName } });
+  return apiFetch('/api/auth/register', { 
+    method: 'POST', 
+    body: { 
+      email, 
+      password, 
+      displayName,
+      name: displayName,          // เผื่อ Backend Go รับ 'name'
+      display_name: displayName   // เผื่อ Backend Go รับ 'display_name'
+    } 
+  });
 }
+
 export function login(email, password) {
-  return apiFetch('/api/auth/login', { method: 'POST', body: { email, password } });   // ได้ { token, member }
+  return apiFetch('/api/auth/login', { method: 'POST', body: { email, password } });
 }
+
 export function getMe(token) {
   return apiFetch('/api/me', { token });
 }
 
 // ---------- รีวิว ----------
 export function getReviews(movieId) {
-  return apiFetch(`/api/movies/${movieId}/reviews`);                                   // ได้ { items }
+  return apiFetch(`/api/movies/${movieId}/reviews`);
 }
+
 export function postReview(movieId, text, token) {
   return apiFetch(`/api/movies/${movieId}/reviews`, { method: 'POST', body: { text }, token });
 }
@@ -59,20 +67,23 @@ export function putVote(movieId, score, token) {
 
 // ---------- Wishlist ----------
 export function getWishlist(token) {
-  return apiFetch('/api/me/wishlist', { token });                                       // ได้ { items }
+  return apiFetch('/api/me/wishlist', { token });
 }
+
 export function addToWishlist(movieId, token) {
   return apiFetch(`/api/me/wishlist/${movieId}`, { method: 'PUT', token });
 }
+
 export function removeFromWishlist(movieId, token) {
   return apiFetch(`/api/me/wishlist/${movieId}`, { method: 'DELETE', token });
 }
 
-// ---------- หนัง (สัปดาห์หน้า: เปลี่ยนหน้า Movies จาก tmdb.js มาใช้ตัวนี้) ----------
+// ---------- หนัง ----------
 export async function getMovies() {
   const data = await apiFetch('/api/movies');
   return data.items;
 }
+
 export async function getMovie(movieId) {
   const items = await getMovies();
   const movie = items.find(m => String(m.id) === String(movieId));

@@ -38,7 +38,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ตรงตามลำดับที่ backend.js คาดหวัง: (email, password, displayName)
   const register = async (email, password, displayName) => {
     try {
       const data = await apiRegister(email, password, displayName);
