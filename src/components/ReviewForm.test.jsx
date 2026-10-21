@@ -19,7 +19,6 @@ test('พิมพ์แล้วกดส่ง ต้องเรียก onS
   expect(onSubmit).toHaveBeenCalledWith('สนุกมาก ฉากแอ็กชันดี');
   expect(await screen.findByText(/ขอบคุณสำหรับรีวิว Parasite/)).toBeInTheDocument();
 });
-
 test('ถ้า onSubmit โยน Error ต้องโชว์ข้อความนั้น และฟอร์มยังอยู่ให้แก้ต่อ', async () => {
   const user = userEvent.setup();
   const onSubmit = jest.fn().mockRejectedValue(new Error('รีวิวสั้นเกินไป'));   // แม่ปลอม: server ตอบ 400

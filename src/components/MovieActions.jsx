@@ -47,14 +47,16 @@ function MovieActions({ movieId }) {
     <div className="mt-4 space-y-3">
       <div className="flex flex-wrap items-center gap-1">
         <span className="mr-2 text-sm text-slate-500">ให้คะแนน</span>
-        {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
           <button
             key={n}
             onClick={() => handleVote(n)}
-            className={'h-8 w-8 rounded-lg border text-sm ' +
+            className={
+              'h-8 w-8 rounded-lg border text-sm ' +
               (myScore === n
                 ? 'border-emerald-500 bg-emerald-500 text-white'
-                : 'border-emerald-200 bg-white text-slate-600 hover:bg-emerald-50')}
+                : 'border-emerald-200 bg-white text-slate-600 hover:bg-emerald-50')
+            }
           >
             {n}
           </button>
@@ -63,10 +65,12 @@ function MovieActions({ movieId }) {
 
       <button
         onClick={handleWishlist}
-        className={'rounded-lg border px-4 py-2 text-sm ' +
+        className={
+          'rounded-lg border px-4 py-2 text-sm ' +
           (inWishlist
             ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-            : 'border-emerald-200 bg-white text-slate-600 hover:bg-emerald-50')}
+            : 'border-emerald-200 bg-white text-slate-600 hover:bg-emerald-50')
+        }
       >
         {inWishlist
           ? '❤️ อยู่ในรายการที่อยากดูแล้ว'

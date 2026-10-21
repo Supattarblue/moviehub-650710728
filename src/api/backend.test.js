@@ -53,3 +53,4 @@ test('server ตอบมาไม่ใช่ JSON (เช่น ลืมร�
 
   await expect(apiFetch('/api/movies')).rejects.toThrow('server ไม่ได้ตอบเป็น JSON');
 });
+
