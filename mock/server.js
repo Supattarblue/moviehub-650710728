@@ -7,7 +7,18 @@ const cors = require('cors');
 const movies = require('./movies.json');          // 100 เรื่องชุดเดียวกับ seed.sql ของทีม Go
 
 const app = express();
-app.use(cors());                                   // Go จริงต้องเปิด CORS แบบนี้เหมือนกัน
+
+// ---------- ตั้งค่า CORS ให้รองรับ preflight request (OPTIONS) และ Vercel ----------
+app.use(cors({
+  origin: '*', // หรือใส่ URL ของ Vercel เช่น 'https://moviehub-650710728-155ap1v9i-supattarblues-projects.vercel.app'
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// รองรับ Preflight Requests สำหรับทุก route
+app.options('*', cors());
+
 app.use(express.json());                           // แปลง body ที่เป็น JSON ให้เป็น object (req.body)
 
 // log ทุก request จะได้เห็นหน้าห้องว่าหน้าเว็บยิงอะไรมา
