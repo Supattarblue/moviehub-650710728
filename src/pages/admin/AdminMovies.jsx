@@ -93,4 +93,4 @@ function AdminMovies() {
   );
 }
 
-export default AdminMovies; 
+export default AdminMovies;
