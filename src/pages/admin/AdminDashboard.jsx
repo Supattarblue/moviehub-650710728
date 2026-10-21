@@ -45,6 +45,19 @@ function AdminDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* เพิ่มส่วนหัวข้อและแท็บเมนู */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-slate-900">หลังบ้าน MovieHub</h1>
+          <div className="flex gap-2 text-sm font-medium">
+            <span className="rounded-full bg-emerald-500 px-3.5 py-1 text-white">ภาพรวม</span>
+            <Link to="/admin/movies" className="rounded-full px-3.5 py-1 text-slate-600 hover:bg-slate-100">หนัง</Link>
+            <Link to="/admin/members" className="rounded-full px-3.5 py-1 text-slate-600 hover:bg-slate-100">สมาชิก</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* การ์ดตัวเลข 5 ใบ */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <StatCard label="หนัง" value={stats.movies} to="/admin/movies" />
         <StatCard label="สมาชิก" value={stats.members} to="/admin/members" />
