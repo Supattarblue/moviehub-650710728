@@ -3,18 +3,16 @@ import { useParams, Link } from 'react-router-dom';
 import ReviewForm from '../components/ReviewForm';
 import ReviewList from '../components/ReviewList';
 import MovieActions from '../components/MovieActions';
-import { getMovie } from '../api/backend';
+import { getMovie, getReviews, postReview } from '../api/backend';
 import { useAuth } from '../auth/AuthContext';
-import { getReviews, postReview } from '../api/backend';
 
 function MovieDetail() {
-  const { id } = useParams();                       // ได้เป็น string เสมอ (ตอนนี้คือรหัสของ TMDB)
+  const { id } = useParams(); // ได้เป็น string เสมอ (ตอนนี้คือรหัสของ TMDB)
   const [movie, setMovie] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
-  const [reviews, setReviews] = useState([]);       // รีวิวจาก backend ของเรา (ไม่ใช่ TMDB)
-  const { isLoggedIn, token, member } = useAuth();       
-            // TODO ขั้นที่ 3: ดึง token และ member มาด้วย
+  const [reviews, setReviews] = useState([]); // รีวิวจาก backend ของเรา (ไม่ใช่ TMDB)
+  const { isLoggedIn, token, member } = useAuth(); // ดึง token และ member มาด้วย
 
   useEffect(() => {
     let ignore = false;
@@ -22,33 +20,44 @@ function MovieDetail() {
       setStatus('loading');
       try {
         const m = await getMovie(id);
-        if (!ignore) { setMovie(m); setStatus('success'); }
+        if (!ignore) {
+          setMovie(m);
+          setStatus('success');
+        }
       } catch (err) {
-        if (!ignore) { setError(err); setStatus('error'); }
+        if (!ignore) {
+          setError(err);
+          setStatus('error');
+        }
       }
     }
     load();
-    return () => { ignore = true; };
-  }, [id]);                                          // id เปลี่ยน = โหลดเรื่องใหม่
+    return () => {
+      ignore = true;
+    };
+  }, [id]); // id เปลี่ยน = โหลดเรื่องใหม่
 
-  // TODO ขั้นที่ 3 (ก): เปลี่ยน effect นี้ให้โหลดรีวิวจริงจาก backend
-  //   getReviews(id) ได้ { items } แล้ว setReviews(items)  dependency คือ [id] เหมือนตัวบน
-  //   (แยกจาก effect ของ TMDB เพราะคนละ server พังคนละแบบ ไม่ควรให้รีวิวล่มแล้วหน้าทั้งหน้าพัง)
-   // โหลดรีวิวของเรื่องนี้จาก backend ของเรา แยก effect จาก TMDB เพราะคนละ server
+  // โหลดรีวิวของเรื่องนี้จาก backend ของเรา แยก effect จาก TMDB เพราะคนละ server
   useEffect(() => {
     let ignore = false;
     getReviews(id)
-      .then(data => { if (!ignore) setReviews(data.items); })
-      .catch(() => { if (!ignore) setReviews([]); });   // backend ล่มก็แค่ไม่มีรีวิว หน้าหนังยังดูได้
-    return () => { ignore = true; };
+      .then((data) => {
+        if (!ignore) setReviews(data.items);
+      })
+      .catch(() => {
+        if (!ignore) setReviews([]);
+      }); // backend ล่มก็แค่ไม่มีรีวิว หน้าหนังยังดูได้
+    return () => {
+      ignore = true;
+    };
   }, [id]);
 
   // ส่งรีวิวจริง: ReviewForm เรียกฟังก์ชันนี้ตอนกดส่ง ถ้า throw ฟอร์มจะโชว์ข้อความ error เอง
   async function handleReviewSubmit(text) {
-    const saved = await postReview(id, text, token);          // 201 ได้ { id, text, createdAt }
+    const saved = await postReview(id, text, token); // 201 ได้ { id, text, createdAt }
     setReviews([
       { ...saved, member: { id: member.id, displayName: member.displayName }, score: null },
-      ...reviews,                                              // ต่อหน้ารายการเดิม
+      ...reviews, // ต่อหน้ารายการเดิม
     ]);
   }
 
@@ -72,28 +81,39 @@ function MovieDetail() {
       <div className="mx-auto max-w-xl px-4 py-20 text-center">
         <p className="text-lg text-slate-700">ไม่พบหนังเรื่องนี้ 😢</p>
         <p className="text-sm text-slate-400">{error.message}</p>
-        <Link to="/movies" className="mt-6 inline-block text-sm text-emerald-600 hover:underline">กลับไปหน้าหนังทั้งหมด</Link>
+        <Link to="/movies" className="mt-6 inline-block text-sm text-emerald-600 hover:underline">
+          กลับไปหน้าหนังทั้งหมด
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:px-6">
-      <Link to="/movies" className="text-sm text-slate-500 hover:text-emerald-600">กลับไปหน้าหนังทั้งหมด</Link>
+      <Link to="/movies" className="text-sm text-slate-500 hover:text-emerald-600">
+        กลับไปหน้าหนังทั้งหมด
+      </Link>
 
       <div className="mt-4 flex flex-col gap-8 md:flex-row">
         {movie.poster ? (
-          <img src={movie.poster} alt={`โปสเตอร์ ${movie.title}`}
-               className="w-48 shrink-0 self-start rounded-xl border border-slate-200" />
+          <img
+            src={movie.poster}
+            alt={`โปสเตอร์ ${movie.title}`}
+            className="w-48 shrink-0 self-start rounded-xl border border-slate-200"
+          />
         ) : (
-          <div className="grid aspect-[2/3] w-48 shrink-0 place-items-center rounded-xl bg-slate-100 text-5xl">🎬</div>
+          <div className="grid aspect-[2/3] w-48 shrink-0 place-items-center rounded-xl bg-slate-100 text-5xl">
+            🎬
+          </div>
         )}
 
         <div className="flex-1">
           <h1 className="text-2xl font-semibold text-slate-900 md:text-3xl">{movie.title}</h1>
           {movie.titleTh && <p className="mt-1 text-slate-500">{movie.titleTh}</p>}
           <p className="mt-2 text-sm text-slate-500">
-            {movie.year}{movie.genre && ` | ${movie.genre}`}{movie.rating != null && ` | ⭐ ${movie.rating}`}
+            {movie.year}
+            {movie.genre && ` | ${movie.genre}`}
+            {movie.rating != null && ` | ⭐ ${movie.rating}`}
           </p>
           <p className="mt-4 leading-relaxed text-slate-700">{movie.detail}</p>
 

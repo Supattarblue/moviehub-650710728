@@ -20,6 +20,7 @@ import AdminMovies from './pages/admin/AdminMovies';
 import AdminMovieForm from './pages/admin/AdminMovieForm';
 import AdminMembers from './pages/admin/AdminMembers';
 
+
 function App() {
   return (
     // AuthProvider ครอบทั้งแอป ทุกหน้าข้างในจึงเรียก useAuth() ได้
@@ -28,13 +29,14 @@ function App() {
         <Navbar />
         <KeyBanner />
         <main className="flex-1">
-          <Routes>
+                    <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/movies" element={<Movies />} />
             <Route path="/movies/:id" element={<MovieDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/me/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+            {/* หลังบ้าน: ครอบทั้งกิ่งด้วย RequireRole ครั้งเดียว หน้าลูกทุกหน้าได้รับการป้องกันหมด */}
             <Route path="/admin" element={<RequireRole role="admin"><AdminLayout /></RequireRole>}>
               <Route index element={<AdminDashboard />} />
               <Route path="movies" element={<AdminMovies />} />
